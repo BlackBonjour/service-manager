@@ -5,10 +5,10 @@ namespace BlackBonjour\ServiceManager;
 
 use ArrayAccess;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
-use function is_callable;
 use Psr\Container\ContainerInterface;
 use Throwable;
 use function array_key_exists;
+use function is_callable;
 
 /**
  * @author    Erick Dyck <info@erickdyck.de>
