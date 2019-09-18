@@ -7,11 +7,11 @@ use Psr\Container\ContainerInterface;
 
 /**
  * @author    Erick Dyck <info@erickdyck.de>
- * @since     13.05.2019
+ * @since     18.09.2019
  * @package   BlackBonjour\ServiceManager
  * @copyright Copyright (c) 2019 Erick Dyck
  */
-interface FactoryInterface
+interface AbstractFactoryInterface extends FactoryInterface
 {
-    public function __invoke(ContainerInterface $container, string $service, array $options = []);
+    public function canCreate(ContainerInterface $container, string $service): bool;
 }
