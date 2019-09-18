@@ -4,6 +4,7 @@
   "description": "",
   "keywords": [],
   "homepage": "https://github.com/BlackBonjour/service-manager",
+  "license": "MIT",
   "authors": [
     {
       "name": "Erick Dyck",
