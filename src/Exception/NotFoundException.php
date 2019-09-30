@@ -9,7 +9,6 @@ use Psr\Container\NotFoundExceptionInterface;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     13.05.2019
- * @package   BlackBonjour\ServiceManager\Exception
  * @copyright Copyright (c) 2019 Erick Dyck
  */
 class NotFoundException extends Error implements NotFoundExceptionInterface

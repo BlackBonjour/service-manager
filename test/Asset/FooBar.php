@@ -6,7 +6,6 @@ namespace BlackBonjourTest\ServiceManager\Asset;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     18.09.2019
- * @package   BlackBonjourTest\ServiceManager\Asset
  * @copyright Copyright (c) 2019 Erick Dyck
  */
 class FooBar

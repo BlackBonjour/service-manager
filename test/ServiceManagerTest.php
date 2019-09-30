@@ -17,9 +17,7 @@ use TypeError;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     18.09.2019
- * @package   BlackBonjourTest\ServiceManager
  * @copyright Copyright (c) 2019 Erick Dyck
- * @covers    \BlackBonjour\ServiceManager\ServiceManager
  */
 class ServiceManagerTest extends TestCase
 {

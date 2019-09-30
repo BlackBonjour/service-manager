@@ -12,9 +12,7 @@ use Psr\Container\ContainerInterface;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     18.09.2019
- * @package   BlackBonjourTest\ServiceManager
  * @copyright Copyright (c) 2019 Erick Dyck
- * @covers    \BlackBonjour\ServiceManager\AbstractFactory
  */
 class AbstractFactoryTest extends TestCase
 {

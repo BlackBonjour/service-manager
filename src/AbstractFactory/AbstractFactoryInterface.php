@@ -8,7 +8,6 @@ use Psr\Container\ContainerInterface;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     18.09.2019
- * @package   BlackBonjour\ServiceManager
  * @copyright Copyright (c) 2019 Erick Dyck
  */
 interface AbstractFactoryInterface extends FactoryInterface

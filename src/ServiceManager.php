@@ -15,7 +15,6 @@ use function is_string;
 /**
  * @author    Erick Dyck <info@erickdyck.de>
  * @since     13.05.2019
- * @package   BlackBonjour\ServiceManager
  * @copyright Copyright (c) 2019 Erick Dyck
  */
 class ServiceManager implements ArrayAccess, ContainerInterface
