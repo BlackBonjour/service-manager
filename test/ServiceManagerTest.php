@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BlackBonjourTest\ServiceManager;
 
-use BlackBonjour\ServiceManager\AbstractFactory;
+use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\ServiceManager;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
@@ -24,7 +24,7 @@ class ServiceManagerTest extends TestCase
     public function testAddAbstractFactory(): void
     {
         $manager = new ServiceManager;
-        $manager->addAbstractFactory(new AbstractFactory);
+        $manager->addAbstractFactory(new DynamicFactory);
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
     }
@@ -102,7 +102,7 @@ class ServiceManagerTest extends TestCase
     public function testHasAbstractFactory(): void
     {
         $manager = new ServiceManager;
-        $manager->addAbstractFactory(new AbstractFactory);
+        $manager->addAbstractFactory(new DynamicFactory);
 
         self::assertTrue(isset($manager[FooBar::class]));
         self::assertFalse(isset($manager['config']));

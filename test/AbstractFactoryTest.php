@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BlackBonjourTest\ServiceManager;
 
-use BlackBonjour\ServiceManager\AbstractFactory;
+use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -20,14 +20,14 @@ class AbstractFactoryTest extends TestCase
     {
         self::assertInstanceOf(
             FooBar::class,
-            (new AbstractFactory)($this->createMock(ContainerInterface::class), FooBar::class)
+            (new DynamicFactory)($this->createMock(ContainerInterface::class), FooBar::class)
         );
     }
 
     public function testCanCreate(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $factory   = new AbstractFactory;
+        $factory   = new DynamicFactory;
 
         self::assertTrue($factory->canCreate($container, FooBar::class));
         self::assertFalse($factory->canCreate($container, self::class));

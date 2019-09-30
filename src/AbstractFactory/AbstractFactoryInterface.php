@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace BlackBonjour\ServiceManager;
+namespace BlackBonjour\ServiceManager\AbstractFactory;
 
+use BlackBonjour\ServiceManager\FactoryInterface;
 use Psr\Container\ContainerInterface;
 
 /**

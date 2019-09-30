@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace BlackBonjour\ServiceManager;
 
 use ArrayAccess;
+use BlackBonjour\ServiceManager\AbstractFactory\AbstractFactoryInterface;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use Psr\Container\ContainerInterface;
 use Throwable;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace BlackBonjour\ServiceManager;
+namespace BlackBonjour\ServiceManager\AbstractFactory;
 
 use Psr\Container\ContainerInterface;
 
@@ -10,7 +10,7 @@ use Psr\Container\ContainerInterface;
  * @since     18.09.2019
  * @copyright Copyright (c) 2019 Erick Dyck
  */
-class AbstractFactory implements AbstractFactoryInterface
+class DynamicFactory implements AbstractFactoryInterface
 {
     /**
      * @inheritDoc
