@@ -2,7 +2,7 @@
 /** @noinspection PhpUnhandledExceptionInspection */
 declare(strict_types=1);
 
-namespace BlackBonjourTest\ServiceManager;
+namespace BlackBonjourTest\ServiceManager\AbstractFactory;
 
 use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
@@ -14,7 +14,7 @@ use Psr\Container\ContainerInterface;
  * @since     18.09.2019
  * @copyright Copyright (c) 2019 Erick Dyck
  */
-class AbstractFactoryTest extends TestCase
+class DynamicFactoryTest extends TestCase
 {
     public function testInvoke(): void
     {
