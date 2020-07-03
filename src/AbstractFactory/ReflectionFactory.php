@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
+
 declare(strict_types=1);
 
 namespace BlackBonjour\ServiceManager\AbstractFactory;
@@ -7,6 +7,7 @@ namespace BlackBonjour\ServiceManager\AbstractFactory;
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionParameter;
 
 /**
@@ -18,6 +19,7 @@ class ReflectionFactory implements AbstractFactoryInterface
 {
     /**
      * @inheritDoc
+     * @throws ReflectionException
      */
     public function __invoke(ContainerInterface $container, string $service, array $options = [])
     {
@@ -25,13 +27,13 @@ class ReflectionFactory implements AbstractFactoryInterface
         $constructor     = $reflectionClass->getConstructor();
 
         if ($constructor === null) {
-            return new $service;
+            return new $service();
         }
 
         $parameters = $constructor->getParameters();
 
         if (empty($parameters)) {
-            return new $service;
+            return new $service();
         }
 
         $resolvedParameters = array_map($this->getParameterResolver($container, $service), $parameters);
@@ -41,6 +43,7 @@ class ReflectionFactory implements AbstractFactoryInterface
 
     /**
      * @inheritDoc
+     * @throws ReflectionException
      */
     public function canCreate(ContainerInterface $container, string $service): bool
     {
@@ -54,6 +57,9 @@ class ReflectionFactory implements AbstractFactoryInterface
         };
     }
 
+    /**
+     * @throws ReflectionException
+     */
     private function isConstructorCallable(string $service): bool
     {
         $constructor = (new ReflectionClass($service))->getConstructor();
@@ -61,6 +67,10 @@ class ReflectionFactory implements AbstractFactoryInterface
         return $constructor === null || $constructor->isPublic();
     }
 
+    /**
+     * @throws NotFoundException
+     * @throws ReflectionException
+     */
     private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
     {
         if ($parameter->isArray()) {

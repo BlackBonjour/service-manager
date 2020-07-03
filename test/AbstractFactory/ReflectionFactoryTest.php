@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
+
 declare(strict_types=1);
 
 namespace BlackBonjourTest\ServiceManager\AbstractFactory;
@@ -34,14 +34,14 @@ class ReflectionFactoryTest extends TestCase
 
         self::assertInstanceOf(
             ClassWithoutFactory::class,
-            (new ReflectionFactory)($container, ClassWithoutFactory::class)
+            (new ReflectionFactory())($container, ClassWithoutFactory::class)
         );
     }
 
     public function testCanCreate(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $factory   = new ReflectionFactory;
+        $factory   = new ReflectionFactory();
 
         self::assertTrue($factory->canCreate($container, ClassWithoutFactory::class));
     }

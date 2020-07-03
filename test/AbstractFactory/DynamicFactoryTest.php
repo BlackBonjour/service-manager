@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
+
 declare(strict_types=1);
 
 namespace BlackBonjourTest\ServiceManager\AbstractFactory;
@@ -20,14 +20,14 @@ class DynamicFactoryTest extends TestCase
     {
         self::assertInstanceOf(
             FooBar::class,
-            (new DynamicFactory)($this->createMock(ContainerInterface::class), FooBar::class)
+            (new DynamicFactory())($this->createMock(ContainerInterface::class), FooBar::class)
         );
     }
 
     public function testCanCreate(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $factory   = new DynamicFactory;
+        $factory   = new DynamicFactory();
 
         self::assertTrue($factory->canCreate($container, FooBar::class));
         self::assertFalse($factory->canCreate($container, self::class));

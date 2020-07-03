@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace BlackBonjour\ServiceManager\AbstractFactory;
@@ -18,7 +19,7 @@ class DynamicFactory implements AbstractFactoryInterface
     public function __invoke(ContainerInterface $container, string $service, array $options = [])
     {
         $factoryClass = $service . 'Factory';
-        $factory      = new $factoryClass;
+        $factory      = new $factoryClass();
 
         return $factory($container, $service, $options);
     }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace BlackBonjour\ServiceManager;
@@ -9,6 +10,7 @@ use BlackBonjour\ServiceManager\Exception\ContainerException;
 use Psr\Container\ContainerInterface;
 use Throwable;
 use TypeError;
+
 use function array_key_exists;
 use function is_callable;
 use function is_string;
@@ -120,7 +122,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         }
 
         if (is_string($resolvableFactory) && class_exists($resolvableFactory)) {
-            $factory = new $resolvableFactory;
+            $factory = new $resolvableFactory();
 
             if ($factory instanceof FactoryInterface) {
                 $this->resolvedFactories[$name] = $factory;
@@ -132,17 +134,11 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         throw new ContainerException(sprintf('Factory for service %s is invalid!', $name));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function has($id): bool
     {
         return $this->offsetExists($id);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function offsetExists($offset): bool
     {
         if (array_key_exists($offset, $this->services) || isset($this->factories[$offset])) {
@@ -172,22 +168,17 @@ class ServiceManager implements ArrayAccess, ContainerInterface
             return $this->resolvedServices[$offset];
         }
 
-        $this->resolvedServices[$offset] = $service = $this->createService($offset);
+        $service                         = $this->createService($offset);
+        $this->resolvedServices[$offset] = $service;
 
         return $service;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function offsetSet($offset, $value): void
     {
         $this->services[$offset] = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function offsetUnset($offset): void
     {
         unset(

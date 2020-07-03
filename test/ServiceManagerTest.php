@@ -1,5 +1,5 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
+
 declare(strict_types=1);
 
 namespace BlackBonjourTest\ServiceManager;
@@ -23,15 +23,15 @@ class ServiceManagerTest extends TestCase
 {
     public function testAddAbstractFactory(): void
     {
-        $manager = new ServiceManager;
-        $manager->addAbstractFactory(new DynamicFactory);
+        $manager = new ServiceManager();
+        $manager->addAbstractFactory(new DynamicFactory());
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
     }
 
     public function testAddFactory(): void
     {
-        $manager = new ServiceManager;
+        $manager = new ServiceManager();
         $manager->addFactory(FooBar::class, FooBarFactory::class);
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
@@ -41,13 +41,13 @@ class ServiceManagerTest extends TestCase
     {
         $this->expectException(TypeError::class);
 
-        (new ServiceManager)->addFactory(FooBar::class, 123);
+        (new ServiceManager())->addFactory(FooBar::class, 123);
     }
 
     public function testAddService(): void
     {
         $config         = ['foo' => 'bar'];
-        $manager        = new ServiceManager;
+        $manager        = new ServiceManager();
         $manager['foo'] = 'bar';
         $manager->addService('config', $config);
 
@@ -57,7 +57,7 @@ class ServiceManagerTest extends TestCase
 
     public function testCreateService(): void
     {
-        $manager = new ServiceManager;
+        $manager = new ServiceManager();
         $manager->addFactory(FooBar::class, FooBarFactoryWithOptions::class);
 
         self::assertInstanceOf(FooBar::class, $manager->createService(FooBar::class, ['foo' => 'foo', 'bar' => 'bar']));
@@ -68,12 +68,12 @@ class ServiceManagerTest extends TestCase
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessage('Service BlackBonjourTest\ServiceManager\Asset\FooBar could not be created!');
 
-        (new ServiceManager)->createService(FooBar::class);
+        (new ServiceManager())->createService(FooBar::class);
     }
 
     public function testGet(): void
     {
-        $manager = new ServiceManager;
+        $manager = new ServiceManager();
         $manager->addService('config', 123);
         $manager->addFactory(FooBar::class, FooBarFactory::class);
 
@@ -88,7 +88,7 @@ class ServiceManagerTest extends TestCase
 
     public function testHas(): void
     {
-        $manager = new ServiceManager;
+        $manager = new ServiceManager();
         $manager->addService(FooBar::class, 123);
 
         self::assertTrue($manager->has(FooBar::class));
@@ -101,8 +101,8 @@ class ServiceManagerTest extends TestCase
 
     public function testHasAbstractFactory(): void
     {
-        $manager = new ServiceManager;
-        $manager->addAbstractFactory(new DynamicFactory);
+        $manager = new ServiceManager();
+        $manager->addAbstractFactory(new DynamicFactory());
 
         self::assertTrue(isset($manager[FooBar::class]));
         self::assertFalse(isset($manager['config']));
@@ -110,7 +110,7 @@ class ServiceManagerTest extends TestCase
 
     public function testRemoveService(): void
     {
-        $manager = new ServiceManager;
+        $manager = new ServiceManager();
         $manager->addService('config', []);
         $manager->addService('foo', 'bar');
         $manager->addService('bar', 'baz');
