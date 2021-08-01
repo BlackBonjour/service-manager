@@ -73,13 +73,20 @@ class ReflectionFactory implements AbstractFactoryInterface
      */
     private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
     {
-        if ($parameter->isArray()) {
+        $type = $parameter->getType();
+
+        if ($type !== null) {
+            $type = $type->getName();
+        }
+
+        if ($type === 'array') {
             return [];
         }
 
-        $class = $parameter->getClass();
-
-        if ($class === null) {
+        if (
+            $type === null
+            || (class_exists($type) === false && interface_exists($type) === false)
+        ) {
             if ($parameter->isDefaultValueAvailable() === false) {
                 throw new NotFoundException(
                     sprintf(
@@ -92,8 +99,6 @@ class ReflectionFactory implements AbstractFactoryInterface
 
             return $parameter->getDefaultValue();
         }
-
-        $type = $class->getName();
 
         if ($container->has($type)) {
             return $container->get($type);

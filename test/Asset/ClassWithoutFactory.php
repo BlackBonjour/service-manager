@@ -13,10 +13,12 @@ class ClassWithoutFactory
 {
     private $foo;
     private $bar;
+    private $baz;
 
-    public function __construct(FooBar $foo, array $bar)
+    public function __construct(FooBar $foo, array $bar, int $baz = 123)
     {
         $this->foo = $foo;
         $this->bar = $bar;
+        $this->baz = $baz;
     }
 }
