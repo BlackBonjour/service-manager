@@ -15,9 +15,8 @@ use Throwable;
 use TypeError;
 
 /**
- * @author    Erick Dyck <info@erickdyck.de>
- * @since     18.09.2019
- * @copyright Copyright (c) 2019 Erick Dyck
+ * @author Erick Dyck <info@erickdyck.de>
+ * @since  18.09.2019
  */
 class ServiceManagerTest extends TestCase
 {

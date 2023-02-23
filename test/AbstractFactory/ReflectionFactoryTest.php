@@ -11,9 +11,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 /**
- * @author    Erick Dyck <info@erickdyck.de>
- * @since     30.09.2019
- * @copyright Copyright (c) 2019 Erick Dyck
+ * @author Erick Dyck <info@erickdyck.de>
+ * @since  30.09.2019
  */
 class ReflectionFactoryTest extends TestCase
 {
