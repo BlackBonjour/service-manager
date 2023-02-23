@@ -12,7 +12,7 @@ use Psr\Container\ContainerInterface;
  */
 class DynamicFactory implements AbstractFactoryInterface
 {
-    public function __invoke(ContainerInterface $container, string $service, array $options = [])
+    public function __invoke(ContainerInterface $container, string $service, array|null $options = null)
     {
         $factoryClass = $service . 'Factory';
         $factory      = new $factoryClass();

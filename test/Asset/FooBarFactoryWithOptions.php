@@ -16,7 +16,7 @@ class FooBarFactoryWithOptions implements FactoryInterface
     /**
      * @inheritDoc
      */
-    public function __invoke(ContainerInterface $container, string $service, array $options = [])
+    public function __invoke(ContainerInterface $container, string $service, array|null $options = null)
     {
         return new FooBar($options['foo'], $options['bar']);
     }
