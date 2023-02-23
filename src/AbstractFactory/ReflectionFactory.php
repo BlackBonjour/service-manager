@@ -22,7 +22,7 @@ class ReflectionFactory implements AbstractFactoryInterface
      * @inheritDoc
      * @throws ReflectionException
      */
-    public function __invoke(ContainerInterface $container, string $service, array|null $options = null)
+    public function __invoke(ContainerInterface $container, string $service, ?array $options = null)
     {
         $reflectionClass = new ReflectionClass($service);
         $constructor     = $reflectionClass->getConstructor();

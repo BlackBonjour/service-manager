@@ -22,6 +22,9 @@ use function is_string;
  */
 class ServiceManager implements ArrayAccess, ContainerInterface
 {
+    /** @var array<string, string> */
+    private array $invokables;
+
     /** @var FactoryInterface[]|callable[] */
     private array $resolvedFactories = [];
     private array $resolvedServices = [];
@@ -29,12 +32,15 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     /**
      * @param FactoryInterface[]|callable[]|string[] $factories
      * @param AbstractFactoryInterface[]             $abstractFactories
+     * @param string[]                               $invokables
      */
     public function __construct(
         private array $services = [],
         private array $factories = [],
         private array $abstractFactories = [],
+        array $invokables = [],
     ) {
+        $this->invokables = array_combine($invokables, $invokables);
     }
 
     public function addAbstractFactory(AbstractFactoryInterface $abstractFactory): void
@@ -47,6 +53,11 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         $this->factories[$id] = $factory;
     }
 
+    public function addInvokable(string $id): void
+    {
+        $this->invokables[$id] ??= $id;
+    }
+
     public function addService(string $id, $service): void
     {
         $this->services[$id] = $service;
@@ -55,7 +66,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     /**
      * @throws ContainerException
      */
-    public function createService(string $id, array|null $options = null)
+    public function createService(string $id, ?array $options = null)
     {
         try {
             return $this->getFactory($id)($this, $id, $options);
@@ -123,13 +134,14 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     {
         unset(
             $this->factories[$id],
+            $this->invokables[$id],
             $this->resolvedFactories[$id],
             $this->resolvedServices[$id],
             $this->services[$id]
         );
     }
 
-    private function getAbstractFactory(string $id): AbstractFactoryInterface|null
+    private function getAbstractFactory(string $id): ?AbstractFactoryInterface
     {
         foreach ($this->abstractFactories as $abstractFactory) {
             if ($abstractFactory->canCreate($this, $id)) {
@@ -149,7 +161,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
             return $this->resolvedFactories[$id];
         }
 
-        $resolvableFactory = $this->factories[$id] ?? $this->getAbstractFactory($id);
+        $resolvableFactory = $this->factories[$id]
+            ?? $this->getInvokableFactory($id)
+            ?? $this->getAbstractFactory($id);
 
         if (empty($resolvableFactory)) {
             throw new ContainerException(sprintf('Factory for service "%s" not found!', $id));
@@ -172,5 +186,12 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         }
 
         throw new ContainerException(sprintf('Factory for service "%s" is invalid!', $id));
+    }
+
+    private function getInvokableFactory(string $id): ?InvokableFactory
+    {
+        return isset($this->invokables[$id])
+            ? new InvokableFactory()
+            : null;
     }
 }

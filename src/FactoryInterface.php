@@ -19,5 +19,5 @@ interface FactoryInterface
      * @param string             $service   Name of the service to create a new instance of.
      * @param array|null         $options   Some options that can be passed to build the service.
      */
-    public function __invoke(ContainerInterface $container, string $service, array|null $options = null);
+    public function __invoke(ContainerInterface $container, string $service, ?array $options = null);
 }
