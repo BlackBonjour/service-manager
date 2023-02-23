@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BlackBonjourTest\ServiceManager\AbstractFactory;
 
 use BlackBonjour\ServiceManager\AbstractFactory\ReflectionFactory;
+use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutFactory;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutFactoryAndScalarTypeHint;
@@ -63,7 +64,7 @@ class ReflectionFactoryTest extends TestCase
 
     public function testInvokeWithNonOptionalScalarParams(): void
     {
-        $this->expectException(NotFoundException::class);
+        $this->expectException(ContainerException::class);
         $this->expectExceptionMessage(
             sprintf(
                 'Unable to create service "%s": Cannot resolve parameter "id" to a class or interface!',

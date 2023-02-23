@@ -11,6 +11,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionNamedType;
 use ReflectionParameter;
 
 /**
@@ -22,6 +23,9 @@ class ReflectionFactory implements AbstractFactoryInterface
     /**
      * @inheritDoc
      * @throws ContainerException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundException
+     * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
     public function __invoke(ContainerInterface $container, string $service, ?array $options = null)
@@ -31,21 +35,18 @@ class ReflectionFactory implements AbstractFactoryInterface
         }
 
         $reflectionClass = new ReflectionClass($service);
-        $constructor     = $reflectionClass->getConstructor();
+        $parameters      = $reflectionClass->getConstructor()?->getParameters() ?? [];
 
-        if ($constructor === null) {
-            return new $service();
+        if ($parameters) {
+            $resolvedParameters = array_map(
+                fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service),
+                $parameters
+            );
+
+            return new $service(...$resolvedParameters);
         }
 
-        $parameters = $constructor->getParameters();
-
-        if (empty($parameters)) {
-            return new $service();
-        }
-
-        $resolvedParameters = array_map($this->getParameterResolver($container, $service), $parameters);
-
-        return new $service(...$resolvedParameters);
+        return new $service();
     }
 
     /**
@@ -63,11 +64,6 @@ class ReflectionFactory implements AbstractFactoryInterface
         return false;
     }
 
-    private function getParameterResolver(ContainerInterface $container, string $service): callable
-    {
-        return fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service);
-    }
-
     /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundException
@@ -76,7 +72,10 @@ class ReflectionFactory implements AbstractFactoryInterface
      */
     private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
     {
-        $type = $parameter->getType()?->getName();
+        $reflectionType = $parameter->getType();
+        $type           = $reflectionType instanceof ReflectionNamedType
+            ? $reflectionType->getName()
+            : null;
 
         if ($type === 'array') {
             return [];
@@ -87,7 +86,7 @@ class ReflectionFactory implements AbstractFactoryInterface
             || (class_exists($type) === false && interface_exists($type) === false)
         ) {
             if ($parameter->isDefaultValueAvailable() === false) {
-                throw new NotFoundException(
+                throw new ContainerException(
                     sprintf(
                         'Unable to create service "%s": Cannot resolve parameter "%s" to a class or interface!',
                         $service,
