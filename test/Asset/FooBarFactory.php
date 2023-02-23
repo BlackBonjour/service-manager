@@ -16,7 +16,7 @@ class FooBarFactory implements FactoryInterface
     /**
      * @inheritDoc
      */
-    public function __invoke(ContainerInterface $container, string $service, array|null $options = null)
+    public function __invoke(ContainerInterface $container, string $service, ?array $options = null): FooBar
     {
         return new FooBar('foo', 'bar');
     }

@@ -10,14 +10,10 @@ namespace BlackBonjourTest\ServiceManager\Asset;
  */
 class ClassWithoutFactory
 {
-    private $foo;
-    private $bar;
-    private $baz;
-
-    public function __construct(FooBar $foo, array $bar, int $baz = 123)
-    {
-        $this->foo = $foo;
-        $this->bar = $bar;
-        $this->baz = $baz;
+    public function __construct(
+        public readonly FooBar $foo,
+        public readonly array $bar,
+        public readonly int $baz = 123,
+    ) {
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BlackBonjour\ServiceManager\AbstractFactory;
 
+use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -20,10 +21,15 @@ class ReflectionFactory implements AbstractFactoryInterface
 {
     /**
      * @inheritDoc
+     * @throws ContainerException
      * @throws ReflectionException
      */
     public function __invoke(ContainerInterface $container, string $service, ?array $options = null)
     {
+        if ($this->canCreate($container, $service) === false) {
+            throw new ContainerException(sprintf('Cannot create service "%s"!', $service));
+        }
+
         $reflectionClass = new ReflectionClass($service);
         $constructor     = $reflectionClass->getConstructor();
 
@@ -44,26 +50,22 @@ class ReflectionFactory implements AbstractFactoryInterface
 
     /**
      * @inheritDoc
-     * @throws ReflectionException
      */
     public function canCreate(ContainerInterface $container, string $service): bool
     {
-        return class_exists($service) && $this->isConstructorCallable($service);
+        if (class_exists($service)) {
+            $reflectionClass = new ReflectionClass($service);
+            $constructor     = $reflectionClass->getConstructor();
+
+            return $constructor === null || $constructor->isPublic();
+        }
+
+        return false;
     }
 
     private function getParameterResolver(ContainerInterface $container, string $service): callable
     {
         return fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service);
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    private function isConstructorCallable(string $service): bool
-    {
-        $constructor = (new ReflectionClass($service))->getConstructor();
-
-        return $constructor === null || $constructor->isPublic();
     }
 
     /**
