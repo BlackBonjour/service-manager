@@ -12,9 +12,6 @@ use Psr\Container\ContainerInterface;
  */
 class DynamicFactory implements AbstractFactoryInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function __invoke(ContainerInterface $container, string $service, array $options = [])
     {
         $factoryClass = $service . 'Factory';

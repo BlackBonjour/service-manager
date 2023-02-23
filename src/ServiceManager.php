@@ -9,7 +9,6 @@ use BlackBonjour\ServiceManager\AbstractFactory\AbstractFactoryInterface;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use Psr\Container\ContainerInterface;
 use Throwable;
-use TypeError;
 
 use function array_key_exists;
 use function is_callable;
@@ -21,31 +20,19 @@ use function is_string;
  */
 class ServiceManager implements ArrayAccess, ContainerInterface
 {
-    /** @var AbstractFactoryInterface[] */
-    private $abstractFactories;
-
-    /** @var FactoryInterface[]|callable[]|string[] */
-    private $factories;
-
     /** @var FactoryInterface[]|callable[] */
-    private $resolvedFactories = [];
-
-    /** @var mixed[] */
-    private $resolvedServices = [];
-
-    /** @var mixed[] */
-    private $services;
+    private array $resolvedFactories = [];
+    private array $resolvedServices = [];
 
     /**
-     * @param mixed[]                                $services
      * @param FactoryInterface[]|callable[]|string[] $factories
      * @param AbstractFactoryInterface[]             $abstractFactories
      */
-    public function __construct(array $services = [], array $factories = [], array $abstractFactories = [])
-    {
-        $this->abstractFactories = $abstractFactories;
-        $this->factories         = $factories;
-        $this->services          = $services;
+    public function __construct(
+        private array $services = [],
+        private array $factories = [],
+        private array $abstractFactories = []
+    ) {
     }
 
     public function addAbstractFactory(AbstractFactoryInterface $abstractFactory): void
@@ -53,13 +40,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         $this->abstractFactories[] = $abstractFactory;
     }
 
-    public function addFactory(string $name, $factory): void
+    public function addFactory(string $name, string|callable $factory): void
     {
-        if (is_string($factory) || is_callable($factory)) {
-            $this->factories[$name] = $factory;
-        } else {
-            throw new TypeError(sprintf('Invalid factory for service %s given!', $name));
-        }
+        $this->factories[$name] = $factory;
     }
 
     public function addService(string $name, $service): void
@@ -75,19 +58,75 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         try {
             return $this->getFactory($name)($this, $name, $options);
         } catch (Throwable $t) {
-            throw new ContainerException(sprintf('Service %s could not be created!', $name), 0, $t);
+            throw new ContainerException(sprintf('Service "%s" could not be created!', $name), 0, $t);
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function get($id)
+    public function get(string $id)
     {
         return $this->offsetGet($id);
     }
 
-    private function getAbstractFactory(string $name): ?callable
+    public function has(string $id): bool
+    {
+        return $this->offsetExists($id);
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        if (array_key_exists($offset, $this->services) || isset($this->factories[$offset])) {
+            return true;
+        }
+
+        foreach ($this->abstractFactories as $abstractFactory) {
+            if ($abstractFactory->canCreate($this, $offset)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @throws ContainerException
+     */
+    public function offsetGet(mixed $offset): mixed
+    {
+        if (array_key_exists($offset, $this->services)) {
+            return $this->services[$offset];
+        }
+
+        if (array_key_exists($offset, $this->resolvedServices)) {
+            return $this->resolvedServices[$offset];
+        }
+
+        $service                         = $this->createService($offset);
+        $this->resolvedServices[$offset] = $service;
+
+        return $service;
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->services[$offset] = $value;
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        unset(
+            $this->factories[$offset],
+            $this->resolvedFactories[$offset],
+            $this->resolvedServices[$offset],
+            $this->services[$offset]
+        );
+    }
+
+    public function removeService(string $name): void
+    {
+        $this->offsetUnset($name);
+    }
+
+    private function getAbstractFactory(string $name): ?AbstractFactoryInterface
     {
         foreach ($this->abstractFactories as $abstractFactory) {
             if ($abstractFactory->canCreate($this, $name)) {
@@ -99,10 +138,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     }
 
     /**
-     * @return FactoryInterface|callable
      * @throws ContainerException
      */
-    private function getFactory(string $name): callable
+    private function getFactory(string $name): FactoryInterface|callable
     {
         if (isset($this->resolvedFactories[$name])) {
             return $this->resolvedFactories[$name];
@@ -111,7 +149,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         $resolvableFactory = $this->factories[$name] ?? $this->getAbstractFactory($name);
 
         if (empty($resolvableFactory)) {
-            throw new ContainerException(sprintf('Factory for service %s not found!', $name));
+            throw new ContainerException(sprintf('Factory for service "%s" not found!', $name));
         }
 
         if (is_callable($resolvableFactory)) {
@@ -130,66 +168,6 @@ class ServiceManager implements ArrayAccess, ContainerInterface
             }
         }
 
-        throw new ContainerException(sprintf('Factory for service %s is invalid!', $name));
-    }
-
-    public function has($id): bool
-    {
-        return $this->offsetExists($id);
-    }
-
-    public function offsetExists($offset): bool
-    {
-        if (array_key_exists($offset, $this->services) || isset($this->factories[$offset])) {
-            return true;
-        }
-
-        foreach ($this->abstractFactories as $abstractFactory) {
-            if ($abstractFactory->canCreate($this, $offset)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     * @throws ContainerException
-     */
-    public function offsetGet($offset)
-    {
-        if (array_key_exists($offset, $this->services)) {
-            return $this->services[$offset];
-        }
-
-        if (array_key_exists($offset, $this->resolvedServices)) {
-            return $this->resolvedServices[$offset];
-        }
-
-        $service                         = $this->createService($offset);
-        $this->resolvedServices[$offset] = $service;
-
-        return $service;
-    }
-
-    public function offsetSet($offset, $value): void
-    {
-        $this->services[$offset] = $value;
-    }
-
-    public function offsetUnset($offset): void
-    {
-        unset(
-            $this->factories[$offset],
-            $this->resolvedFactories[$offset],
-            $this->resolvedServices[$offset],
-            $this->services[$offset]
-        );
-    }
-
-    public function removeService(string $name): void
-    {
-        $this->offsetUnset($name);
+        throw new ContainerException(sprintf('Factory for service "%s" is invalid!', $name));
     }
 }

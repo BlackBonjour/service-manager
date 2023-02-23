@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace BlackBonjour\ServiceManager\AbstractFactory;
 
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionParameter;
@@ -51,9 +53,7 @@ class ReflectionFactory implements AbstractFactoryInterface
 
     private function getParameterResolver(ContainerInterface $container, string $service): callable
     {
-        return function (ReflectionParameter $parameter) use ($container, $service) {
-            return $this->resolveParameter($parameter, $container, $service);
-        };
+        return fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service);
     }
 
     /**
@@ -67,16 +67,14 @@ class ReflectionFactory implements AbstractFactoryInterface
     }
 
     /**
+     * @throws ContainerExceptionInterface
      * @throws NotFoundException
+     * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
     private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
     {
-        $type = $parameter->getType();
-
-        if ($type !== null) {
-            $type = $type->getName();
-        }
+        $type = $parameter->getType()?->getName();
 
         if ($type === 'array') {
             return [];

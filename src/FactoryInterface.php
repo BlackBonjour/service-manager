@@ -15,9 +15,9 @@ interface FactoryInterface
     /**
      * Creates a new service.
      *
-     * @param ContainerInterface $container A container implementing PSR-11
-     * @param string             $service   Name of the service to create a new instance of
-     * @param array              $options   Some options that can be passed into the creation process
+     * @param ContainerInterface $container A container implementing PSR-11.
+     * @param string             $service   Name of the service to create a new instance of.
+     * @param array              $options   Some options that can be passed to build the service.
      */
     public function __invoke(ContainerInterface $container, string $service, array $options = []);
 }
