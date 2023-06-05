@@ -4,80 +4,78 @@ declare(strict_types=1);
 
 namespace BlackBonjour\ServiceManager\AbstractFactory;
 
+use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionNamedType;
 use ReflectionParameter;
 
 /**
- * @author    Erick Dyck <info@erickdyck.de>
- * @since     30.09.2019
- * @copyright Copyright (c) 2019 Erick Dyck
+ * @author Erick Dyck <info@erickdyck.de>
+ * @since  30.09.2019
  */
 class ReflectionFactory implements AbstractFactoryInterface
 {
     /**
      * @inheritDoc
+     * @throws ContainerException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundException
+     * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
-    public function __invoke(ContainerInterface $container, string $service, array $options = [])
+    public function __invoke(ContainerInterface $container, string $service, ?array $options = null)
     {
+        if ($this->canCreate($container, $service) === false) {
+            throw new ContainerException(sprintf('Cannot create service "%s"!', $service));
+        }
+
         $reflectionClass = new ReflectionClass($service);
-        $constructor     = $reflectionClass->getConstructor();
+        $parameters      = $reflectionClass->getConstructor()?->getParameters() ?? [];
 
-        if ($constructor === null) {
-            return new $service();
+        if ($parameters) {
+            $resolvedParameters = array_map(
+                fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service),
+                $parameters
+            );
+
+            return new $service(...$resolvedParameters);
         }
 
-        $parameters = $constructor->getParameters();
-
-        if (empty($parameters)) {
-            return new $service();
-        }
-
-        $resolvedParameters = array_map($this->getParameterResolver($container, $service), $parameters);
-
-        return new $service(...$resolvedParameters);
+        return new $service();
     }
 
     /**
      * @inheritDoc
-     * @throws ReflectionException
      */
     public function canCreate(ContainerInterface $container, string $service): bool
     {
-        return class_exists($service) && $this->isConstructorCallable($service);
-    }
+        if (class_exists($service)) {
+            $reflectionClass = new ReflectionClass($service);
+            $constructor     = $reflectionClass->getConstructor();
 
-    private function getParameterResolver(ContainerInterface $container, string $service): callable
-    {
-        return function (ReflectionParameter $parameter) use ($container, $service) {
-            return $this->resolveParameter($parameter, $container, $service);
-        };
-    }
+            return $constructor === null || $constructor->isPublic();
+        }
 
-    /**
-     * @throws ReflectionException
-     */
-    private function isConstructorCallable(string $service): bool
-    {
-        $constructor = (new ReflectionClass($service))->getConstructor();
-
-        return $constructor === null || $constructor->isPublic();
+        return false;
     }
 
     /**
+     * @throws ContainerExceptionInterface
      * @throws NotFoundException
+     * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
     private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
     {
-        $type = $parameter->getType();
-
-        if ($type !== null) {
-            $type = $type->getName();
-        }
+        $reflectionType = $parameter->getType();
+        $type           = $reflectionType instanceof ReflectionNamedType
+            ? $reflectionType->getName()
+            : null;
 
         if ($type === 'array') {
             return [];
@@ -88,7 +86,7 @@ class ReflectionFactory implements AbstractFactoryInterface
             || (class_exists($type) === false && interface_exists($type) === false)
         ) {
             if ($parameter->isDefaultValueAvailable() === false) {
-                throw new NotFoundException(
+                throw new ContainerException(
                     sprintf(
                         'Unable to create service "%s": Cannot resolve parameter "%s" to a class or interface!',
                         $service,

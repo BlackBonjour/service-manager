@@ -1,2 +1,2 @@
 # service-manager
-Factory biased service manager based on PSR-11
+Small, lightweight and factory-biased service manager based on the PSR-11 standard.

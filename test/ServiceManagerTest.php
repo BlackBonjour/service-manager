@@ -7,17 +7,18 @@ namespace BlackBonjourTest\ServiceManager;
 use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\ServiceManager;
+use BlackBonjourTest\ServiceManager\Asset\ClassWithoutDependencies;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
 use BlackBonjourTest\ServiceManager\Asset\FooBarFactory;
 use BlackBonjourTest\ServiceManager\Asset\FooBarFactoryWithOptions;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Throwable;
 use TypeError;
 
 /**
- * @author    Erick Dyck <info@erickdyck.de>
- * @since     18.09.2019
- * @copyright Copyright (c) 2019 Erick Dyck
+ * @author Erick Dyck <info@erickdyck.de>
+ * @since  18.09.2019
  */
 class ServiceManagerTest extends TestCase
 {
@@ -44,6 +45,15 @@ class ServiceManagerTest extends TestCase
         (new ServiceManager())->addFactory(FooBar::class, 123);
     }
 
+    public function testAddInvokable(): void
+    {
+        $manager = new ServiceManager(invokables: [ClassWithoutDependencies::class]);
+        $manager->addInvokable(stdClass::class);
+
+        self::assertInstanceOf(ClassWithoutDependencies::class, $manager->get(ClassWithoutDependencies::class));
+        self::assertInstanceOf(stdClass::class, $manager->get(stdClass::class));
+    }
+
     public function testAddService(): void
     {
         $config         = ['foo' => 'bar'];
@@ -66,7 +76,7 @@ class ServiceManagerTest extends TestCase
     public function testCreateServiceWithException(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Service BlackBonjourTest\ServiceManager\Asset\FooBar could not be created!');
+        $this->expectExceptionMessage(sprintf('Service "%s" could not be created!', FooBar::class));
 
         (new ServiceManager())->createService(FooBar::class);
     }
@@ -134,7 +144,7 @@ class ServiceManagerTest extends TestCase
             self::assertInstanceOf(ContainerException::class, $t);
             self::assertInstanceOf(ContainerException::class, $t->getPrevious());
             self::assertEquals(
-                'Factory for service BlackBonjourTest\ServiceManager\Asset\FooBar is invalid!',
+                sprintf('Factory for service "%s" is invalid!', FooBar::class),
                 $t->getPrevious()->getMessage()
             );
         }
