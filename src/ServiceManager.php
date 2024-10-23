@@ -245,7 +245,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         if (is_string($resolvableFactory) && class_exists($resolvableFactory)) {
             $factory = new $resolvableFactory();
 
-            if ($factory instanceof FactoryInterface) {
+            if ($factory instanceof FactoryInterface || is_callable($factory)) {
                 $this->resolvedFactories[$id] = $factory;
 
                 return $factory;
