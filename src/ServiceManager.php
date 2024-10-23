@@ -153,17 +153,16 @@ class ServiceManager implements ArrayAccess, ContainerInterface
 
     public function has(string $id): bool
     {
-        if (array_key_exists($id, $this->services) || isset($this->factories[$id])) {
+        if (
+            array_key_exists($id, $this->services)
+            || array_key_exists($id, $this->resolvedServices)
+            || isset($this->factories[$id])
+            || isset($this->invokables[$id])
+        ) {
             return true;
         }
 
-        foreach ($this->abstractFactories as $abstractFactory) {
-            if ($abstractFactory->canCreate($this, $id)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->getAbstractFactory($id) !== null;
     }
 
     public function offsetExists(mixed $offset): bool
