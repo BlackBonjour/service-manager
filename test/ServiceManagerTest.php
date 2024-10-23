@@ -11,6 +11,7 @@ use BlackBonjourTest\ServiceManager\Asset\ClassWithoutDependencies;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
 use BlackBonjourTest\ServiceManager\Asset\FooBarFactory;
 use BlackBonjourTest\ServiceManager\Asset\FooBarFactoryWithOptions;
+use BlackBonjourTest\ServiceManager\Asset\FooBarFactoryWithoutInterface;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Throwable;
@@ -29,10 +30,26 @@ class ServiceManagerTest extends TestCase
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
     }
 
+    public function testAddAbstractFactoryWithClassString(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addAbstractFactory(DynamicFactory::class);
+
+        self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
+    }
+
     public function testAddFactory(): void
     {
         $manager = new ServiceManager();
         $manager->addFactory(FooBar::class, FooBarFactory::class);
+
+        self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
+    }
+
+    public function testAddFactoryWithClassStringAndWithoutInterface(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addFactory(FooBar::class, FooBarFactoryWithoutInterface::class);
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
     }

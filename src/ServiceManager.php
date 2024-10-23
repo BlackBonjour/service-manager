@@ -24,7 +24,7 @@ use function is_string;
  */
 class ServiceManager implements ArrayAccess, ContainerInterface
 {
-    /** @var array<AbstractFactoryInterface> */
+    /** @var array<AbstractFactoryInterface|class-string> */
     private array $abstractFactories;
 
     /** @var array<string, FactoryInterface|callable|class-string> */
@@ -32,6 +32,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
 
     /** @var array<class-string, class-string> */
     private array $invokables;
+
+    /** @var array<string, AbstractFactoryInterface> */
+    private array $resolvedAbstractFactories = [];
 
     /** @var array<string, FactoryInterface|callable> */
     private array $resolvedFactories = [];
@@ -45,7 +48,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     /**
      * @param array<string, mixed>                                  $services
      * @param array<string, FactoryInterface|callable|class-string> $factories
-     * @param array<AbstractFactoryInterface>                       $abstractFactories
+     * @param array<AbstractFactoryInterface|class-string>          $abstractFactories
      * @param array<string|int, class-string>                       $invokables
      */
     public function __construct(
@@ -73,7 +76,8 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         // Validate abstract factories
         foreach ($abstractFactories as $abstractFactory) {
             assert(
-                $abstractFactory instanceof AbstractFactoryInterface,
+                $abstractFactory instanceof AbstractFactoryInterface
+                || (is_string($abstractFactory) && class_exists($abstractFactory)),
                 sprintf('Abstract factories must implement %s!', AbstractFactoryInterface::class),
             );
         }
@@ -93,11 +97,21 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         $this->services          = $services;
     }
 
-    public function addAbstractFactory(AbstractFactoryInterface $abstractFactory): void
+    /**
+     * @throws ContainerException
+     */
+    public function addAbstractFactory(AbstractFactoryInterface|string $abstractFactory): void
     {
+        if (is_string($abstractFactory) && class_exists($abstractFactory) === false) {
+            throw new ContainerException(sprintf('Abstract factory "%s does not exist!"', $abstractFactory));
+        }
+
         $this->abstractFactories[] = $abstractFactory;
     }
 
+    /**
+     * @throws ContainerException
+     */
     public function addFactory(string $id, FactoryInterface|callable|string $factory): void
     {
         if (is_string($factory) && class_exists($factory) === false) {
@@ -107,6 +121,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         $this->factories[$id] = $factory;
     }
 
+    /**
+     * @throws ContainerException
+     */
     public function addInvokable(string $id): void
     {
         if (class_exists($id) === false) {
@@ -208,11 +225,28 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         );
     }
 
+    /**
+     * @throws ContainerException
+     */
     private function getAbstractFactory(string $id): ?AbstractFactoryInterface
     {
         foreach ($this->abstractFactories as $abstractFactory) {
-            if ($abstractFactory->canCreate($this, $id)) {
-                return $abstractFactory;
+            if ($abstractFactory instanceof AbstractFactoryInterface) {
+                $factory = $abstractFactory;
+            } elseif (isset($this->resolvedAbstractFactories[$abstractFactory])) {
+                $factory = $this->resolvedAbstractFactories[$abstractFactory];
+            } else {
+                $factory = new $abstractFactory();
+
+                if ($factory instanceof AbstractFactoryInterface) {
+                    $this->resolvedAbstractFactories[$abstractFactory] = $factory;
+                } else {
+                    throw new ContainerException(sprintf('Abstract factory "%s" is invalid!', $abstractFactory));
+                }
+            }
+
+            if ($factory->canCreate($this, $id)) {
+                return $factory;
             }
         }
 
