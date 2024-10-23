@@ -11,6 +11,4 @@ use Psr\Container\NotFoundExceptionInterface;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  13.05.2019
  */
-class NotFoundException extends Error implements NotFoundExceptionInterface
-{
-}
+class NotFoundException extends Error implements NotFoundExceptionInterface {}

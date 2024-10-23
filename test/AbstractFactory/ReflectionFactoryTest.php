@@ -36,7 +36,7 @@ class ReflectionFactoryTest extends TestCase
             ->expects(self::once())
             ->method('get')
             ->with(FooBar::class)
-            ->willReturn($this->createMock(FooBar::class));
+            ->willReturn(new FooBar('', ''));
 
         $factory = new ReflectionFactory();
 
@@ -50,8 +50,8 @@ class ReflectionFactoryTest extends TestCase
             sprintf(
                 'Unable to create service "%s": Cannot resolve parameter "foo" using type hint "%s"!',
                 ClassWithoutFactory::class,
-                FooBar::class
-            )
+                FooBar::class,
+            ),
         );
 
         $container = $this->createMock(ContainerInterface::class);
@@ -68,8 +68,8 @@ class ReflectionFactoryTest extends TestCase
         $this->expectExceptionMessage(
             sprintf(
                 'Unable to create service "%s": Cannot resolve parameter "id" to a class or interface!',
-                ClassWithoutFactoryAndScalarTypeHint::class
-            )
+                ClassWithoutFactoryAndScalarTypeHint::class,
+            ),
         );
 
         $container = $this->createMock(ContainerInterface::class);

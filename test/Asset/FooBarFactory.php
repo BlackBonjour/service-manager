@@ -11,7 +11,7 @@ use Psr\Container\ContainerInterface;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  18.09.2019
  */
-class FooBarFactory implements FactoryInterface
+final class FooBarFactory implements FactoryInterface
 {
     /**
      * @inheritDoc

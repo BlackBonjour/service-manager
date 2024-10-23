@@ -8,12 +8,11 @@ namespace BlackBonjourTest\ServiceManager\Asset;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  30.09.2019
  */
-class ClassWithoutFactory
+final readonly class ClassWithoutFactory
 {
     public function __construct(
-        public readonly FooBar $foo,
-        public readonly array $bar,
-        public readonly int $baz = 123,
-    ) {
-    }
+        public FooBar $foo,
+        public array $bar,
+        public int $baz = 123,
+    ) {}
 }

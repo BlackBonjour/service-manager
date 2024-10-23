@@ -11,7 +11,7 @@ use Psr\Container\ContainerInterface;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  23.02.2023
  */
-class InvokableFactory implements FactoryInterface
+final class InvokableFactory implements FactoryInterface
 {
     /**
      * @inheritDoc

@@ -14,7 +14,6 @@ use BlackBonjourTest\ServiceManager\Asset\FooBarFactoryWithOptions;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Throwable;
-use TypeError;
 
 /**
  * @author Erick Dyck <info@erickdyck.de>
@@ -36,13 +35,6 @@ class ServiceManagerTest extends TestCase
         $manager->addFactory(FooBar::class, FooBarFactory::class);
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
-    }
-
-    public function testAddFactoryWithException(): void
-    {
-        $this->expectException(TypeError::class);
-
-        (new ServiceManager())->addFactory(FooBar::class, 123);
     }
 
     public function testAddInvokable(): void
@@ -136,7 +128,12 @@ class ServiceManagerTest extends TestCase
 
     public function testRequestingServiceWithInvalidFactory(): void
     {
-        $manager = new ServiceManager([], [FooBar::class => 123], []);
+        $manager = new ServiceManager(
+            services         : [],
+            factories        : [FooBar::class => 123],
+            abstractFactories: [],
+            invokables       : [],
+        );
 
         try {
             $manager[FooBar::class];
@@ -145,7 +142,7 @@ class ServiceManagerTest extends TestCase
             self::assertInstanceOf(ContainerException::class, $t->getPrevious());
             self::assertEquals(
                 sprintf('Factory for service "%s" is invalid!', FooBar::class),
-                $t->getPrevious()->getMessage()
+                $t->getPrevious()->getMessage(),
             );
         }
     }

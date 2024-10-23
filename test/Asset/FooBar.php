@@ -8,11 +8,10 @@ namespace BlackBonjourTest\ServiceManager\Asset;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  18.09.2019
  */
-class FooBar
+final readonly class FooBar
 {
     public function __construct(
-        public readonly string $foo,
-        public readonly string $bar,
-    ) {
-    }
+        public string $foo,
+        public string $bar,
+    ) {}
 }

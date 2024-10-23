@@ -18,7 +18,7 @@ use ReflectionParameter;
  * @author Erick Dyck <info@erickdyck.de>
  * @since  30.09.2019
  */
-class ReflectionFactory implements AbstractFactoryInterface
+final class ReflectionFactory implements AbstractFactoryInterface
 {
     /**
      * @inheritDoc
@@ -28,19 +28,20 @@ class ReflectionFactory implements AbstractFactoryInterface
      * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
-    public function __invoke(ContainerInterface $container, string $service, ?array $options = null)
+    public function __invoke(ContainerInterface $container, string $service, ?array $options = null): mixed
     {
         if ($this->canCreate($container, $service) === false) {
             throw new ContainerException(sprintf('Cannot create service "%s"!', $service));
         }
 
+        /** @var class-string $service */
         $reflectionClass = new ReflectionClass($service);
         $parameters      = $reflectionClass->getConstructor()?->getParameters() ?? [];
 
         if ($parameters) {
             $resolvedParameters = array_map(
-                fn (ReflectionParameter $parameter) => $this->resolveParameter($parameter, $container, $service),
-                $parameters
+                fn(ReflectionParameter $parameter): mixed => $this->resolveParameter($parameter, $container, $service),
+                $parameters,
             );
 
             return new $service(...$resolvedParameters);
@@ -70,8 +71,11 @@ class ReflectionFactory implements AbstractFactoryInterface
      * @throws NotFoundExceptionInterface
      * @throws ReflectionException
      */
-    private function resolveParameter(ReflectionParameter $parameter, ContainerInterface $container, string $service)
-    {
+    private function resolveParameter(
+        ReflectionParameter $parameter,
+        ContainerInterface $container,
+        string $service,
+    ): mixed {
         $reflectionType = $parameter->getType();
         $type           = $reflectionType instanceof ReflectionNamedType
             ? $reflectionType->getName()
@@ -90,8 +94,8 @@ class ReflectionFactory implements AbstractFactoryInterface
                     sprintf(
                         'Unable to create service "%s": Cannot resolve parameter "%s" to a class or interface!',
                         $service,
-                        $parameter->getName()
-                    )
+                        $parameter->getName(),
+                    ),
                 );
             }
 
@@ -111,8 +115,8 @@ class ReflectionFactory implements AbstractFactoryInterface
                 'Unable to create service "%s": Cannot resolve parameter "%s" using type hint "%s"!',
                 $service,
                 $parameter->getName(),
-                $type
-            )
+                $type,
+            ),
         );
     }
 }
