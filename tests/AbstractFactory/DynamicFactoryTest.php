@@ -44,9 +44,9 @@ final class DynamicFactoryTest extends TestCase
     public function testInvoke(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $factory = new DynamicFactory();
 
-        self::assertInstanceOf(FooBar::class, ($factory)($container, FooBar::class));
+        /** @phpstan-ignore-next-line */
+        self::assertInstanceOf(FooBar::class, (new DynamicFactory())($container, FooBar::class));
     }
 
     /**
@@ -59,11 +59,11 @@ final class DynamicFactoryTest extends TestCase
     public function testInvokeFails(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage(sprintf('Cannot create service "%s"!', self::class));
+        $this->expectExceptionMessage(sprintf('Cannot create service "%s".', self::class));
 
         $container = $this->createMock(ContainerInterface::class);
-        $factory = new DynamicFactory();
 
-        ($factory)($container, self::class);
+        /** @phpstan-ignore-next-line */
+        (new DynamicFactory())($container, self::class);
     }
 }

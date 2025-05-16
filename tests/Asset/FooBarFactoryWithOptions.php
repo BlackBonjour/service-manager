@@ -14,6 +14,7 @@ final class FooBarFactoryWithOptions implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, string $service, ?array $options = null): FooBar
     {
+        /** @phpstan-ignore-next-line */
         return new FooBar($options['foo'], $options['bar']);
     }
 }

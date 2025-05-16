@@ -32,9 +32,8 @@ final class InvokableFactoryTest extends TestCase
         $container->expects(self::never())->method('get');
         $container->expects(self::never())->method('has');
 
-        $factory = new InvokableFactory();
-
-        self::assertInstanceOf(stdClass::class, ($factory)($container, stdClass::class));
+        /** @phpstan-ignore-next-line */
+        self::assertInstanceOf(stdClass::class, (new InvokableFactory())($container, stdClass::class));
     }
 
     /**
@@ -47,15 +46,14 @@ final class InvokableFactoryTest extends TestCase
     public function testInvokeWithInvalidOptions(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage(sprintf('Cannot create service "%s": Invalid options given!', FooBar::class));
+        $this->expectExceptionMessage(sprintf('Cannot create service "%s": Invalid options given.', FooBar::class));
 
         $container = $this->createMock(ContainerInterface::class);
         $container->expects(self::never())->method('get');
         $container->expects(self::never())->method('has');
 
-        $factory = new InvokableFactory();
-
-        ($factory)($container, FooBar::class, ['foo' => 'test-string-1', 'bar' => 'test-string-2']);
+        /** @phpstan-ignore-next-line */
+        (new InvokableFactory())($container, FooBar::class, ['foo' => 'test-string-1', 'bar' => 'test-string-2']);
     }
 
     /**
@@ -71,8 +69,8 @@ final class InvokableFactoryTest extends TestCase
         $container->expects(self::never())->method('get');
         $container->expects(self::never())->method('has');
 
-        $factory = new InvokableFactory();
-        $service = ($factory)($container, FooBar::class, ['test-string-1', 'test-string-2']);
+        /** @phpstan-ignore-next-line */
+        $service = (new InvokableFactory())($container, FooBar::class, ['test-string-1', 'test-string-2']);
 
         self::assertInstanceOf(FooBar::class, $service);
         self::assertEquals('test-string-1', $service->foo);

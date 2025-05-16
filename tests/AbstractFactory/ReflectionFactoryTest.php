@@ -55,6 +55,7 @@ final class ReflectionFactoryTest extends TestCase
 
         self::assertInstanceOf(
             ClassWithoutFactory::class,
+            /** @phpstan-ignore-next-line */
             (new ReflectionFactory())($container, ClassWithoutFactory::class),
         );
     }
@@ -84,6 +85,7 @@ final class ReflectionFactoryTest extends TestCase
             ->with(FooBar::class)
             ->willReturn(false);
 
+        /** @phpstan-ignore-next-line */
         (new ReflectionFactory())($container, ClassWithoutFactory::class);
     }
 
@@ -97,6 +99,7 @@ final class ReflectionFactoryTest extends TestCase
     public function testInvokeWithoutConstructor(): void
     {
         $container = $this->createMock(ContainerInterface::class);
+        /** @phpstan-ignore-next-line */
         $instance = (new ReflectionFactory())($container, ClassWithoutConstructor::class);
 
         self::assertInstanceOf(ClassWithoutConstructor::class, $instance);
@@ -113,6 +116,7 @@ final class ReflectionFactoryTest extends TestCase
     public function testInvokeWithArrayParameter(): void
     {
         $container = $this->createMock(ContainerInterface::class);
+        /** @phpstan-ignore-next-line */
         $instance = (new ReflectionFactory())($container, ClassWithArrayParameter::class);
 
         self::assertEquals(new ClassWithArrayParameter([]), $instance);
@@ -130,13 +134,14 @@ final class ReflectionFactoryTest extends TestCase
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessage(
             sprintf(
-                'Unable to create service "%s": Cannot resolve parameter "id" to a class or interface!',
+                'Unable to create service "%s": Cannot resolve parameter "id" to a class or interface.',
                 ClassWithoutFactoryAndScalarTypeHint::class,
             ),
         );
 
         $container = $this->createMock(ContainerInterface::class);
 
+        /** @phpstan-ignore-next-line */
         (new ReflectionFactory())($container, ClassWithoutFactoryAndScalarTypeHint::class);
     }
 
@@ -158,6 +163,7 @@ final class ReflectionFactoryTest extends TestCase
 
         self::assertEquals(
             new ClassWithOptionalParameters(),
+            /** @phpstan-ignore-next-line */
             (new ReflectionFactory())($container, ClassWithOptionalParameters::class),
         );
     }

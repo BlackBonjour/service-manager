@@ -224,13 +224,13 @@ class ServiceManager implements ServiceManagerInterface
             } else {
                 $factory = new $abstractFactory();
 
-                if ($factory instanceof AbstractFactoryInterface) {
-                    $this->resolvedAbstractFactories[$abstractFactory] = $factory;
-                } else {
+                if (($factory instanceof AbstractFactoryInterface) === false) {
                     throw new InvalidAbstractFactoryException(
                         sprintf('The abstract factory "%s" is invalid.', $abstractFactory),
                     );
                 }
+
+                $this->resolvedAbstractFactories[$abstractFactory] = $factory;
             }
 
             if ($factory->canCreate($this, $id)) {

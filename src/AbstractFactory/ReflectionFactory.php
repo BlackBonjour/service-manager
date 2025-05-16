@@ -14,10 +14,6 @@ use ReflectionException;
 use ReflectionNamedType;
 use ReflectionParameter;
 
-/**
- * @author Erick Dyck <info@erickdyck.de>
- * @since  30.09.2019
- */
 final class ReflectionFactory implements AbstractFactoryInterface
 {
     /**
@@ -31,12 +27,12 @@ final class ReflectionFactory implements AbstractFactoryInterface
     public function __invoke(ContainerInterface $container, string $service, ?array $options = null): mixed
     {
         if ($this->canCreate($container, $service) === false) {
-            throw new ContainerException(sprintf('Cannot create service "%s"!', $service));
+            throw new ContainerException(sprintf('Cannot create service "%s".', $service));
         }
 
         /** @var class-string $service */
         $reflectionClass = new ReflectionClass($service);
-        $parameters      = $reflectionClass->getConstructor()?->getParameters() ?? [];
+        $parameters = $reflectionClass->getConstructor()?->getParameters() ?? [];
 
         if ($parameters) {
             $resolvedParameters = array_map(
@@ -57,7 +53,7 @@ final class ReflectionFactory implements AbstractFactoryInterface
     {
         if (class_exists($service)) {
             $reflectionClass = new ReflectionClass($service);
-            $constructor     = $reflectionClass->getConstructor();
+            $constructor = $reflectionClass->getConstructor();
 
             return $constructor === null || $constructor->isPublic();
         }
@@ -77,7 +73,7 @@ final class ReflectionFactory implements AbstractFactoryInterface
         string $service,
     ): mixed {
         $reflectionType = $parameter->getType();
-        $type           = $reflectionType instanceof ReflectionNamedType
+        $type = $reflectionType instanceof ReflectionNamedType
             ? $reflectionType->getName()
             : null;
 
@@ -92,7 +88,7 @@ final class ReflectionFactory implements AbstractFactoryInterface
             if ($parameter->isDefaultValueAvailable() === false) {
                 throw new ContainerException(
                     sprintf(
-                        'Unable to create service "%s": Cannot resolve parameter "%s" to a class or interface!',
+                        'Unable to create service "%s": Cannot resolve parameter "%s" to a class or interface.',
                         $service,
                         $parameter->getName(),
                     ),

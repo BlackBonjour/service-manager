@@ -6,6 +6,9 @@ namespace BlackBonjourTest\ServiceManager\Asset;
 
 final readonly class ClassWithoutFactory
 {
+    /**
+     * @param list<mixed> $bar
+     */
     public function __construct(
         public FooBar $foo,
         public array $bar,
