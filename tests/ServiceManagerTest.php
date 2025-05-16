@@ -49,7 +49,7 @@ final class ServiceManagerTest extends TestCase
      * When an abstract factory is added with an invalid class string, the service manager should throw
      * an `InvalidAbstractFactoryException` with a clear error message about the invalid class string.
      *
-     * @throws InvalidAbstractFactoryException
+     * @throws Throwable
      */
     public function testAddAbstractFactoryWithInvalidClassString(): void
     {
