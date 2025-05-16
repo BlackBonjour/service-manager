@@ -74,7 +74,7 @@ class ServiceManager implements ServiceManagerInterface
     {
         if (is_string($abstractFactory) && class_exists($abstractFactory) === false) {
             throw new InvalidAbstractFactoryException(
-                sprintf('Abstract factory "%s" does not exist!', $abstractFactory),
+                sprintf('The abstract factory "%s" does not exist.', $abstractFactory),
             );
         }
 
@@ -84,7 +84,7 @@ class ServiceManager implements ServiceManagerInterface
     public function addFactory(string $id, FactoryInterface|callable|string $factory): void
     {
         if (is_string($factory) && class_exists($factory) === false) {
-            throw new InvalidFactoryException(sprintf('Factory "%s" does not exist!', $factory));
+            throw new InvalidFactoryException(sprintf('The factory "%s" does not exist.', $factory));
         }
 
         $this->factories[$id] = $factory;
@@ -93,7 +93,7 @@ class ServiceManager implements ServiceManagerInterface
     public function addInvokable(string $id): void
     {
         if (class_exists($id) === false) {
-            throw new ClassNotFoundException(sprintf('Class "%s" does not exist!', $id));
+            throw new ClassNotFoundException(sprintf('The class "%s" does not exist.', $id));
         }
 
         $this->invokables[$id] = $id;
@@ -109,7 +109,7 @@ class ServiceManager implements ServiceManagerInterface
         try {
             return $this->getFactory($id)($this, $id, $options);
         } catch (Throwable $t) {
-            throw new ContainerException(sprintf('Service "%s" could not be created!', $id), previous: $t);
+            throw new ContainerException(sprintf('The service "%s" could not be created.', $id), previous: $t);
         }
     }
 
@@ -154,7 +154,7 @@ class ServiceManager implements ServiceManagerInterface
     {
         /** @phpstan-ignore-next-line */
         if (is_string($offset) === false) {
-            throw new InvalidArgumentException('Service ID must be of type string!');
+            throw new InvalidArgumentException('The service ID must be of type string.');
         }
 
         return $this->has($offset);
@@ -169,7 +169,7 @@ class ServiceManager implements ServiceManagerInterface
     {
         /** @phpstan-ignore-next-line */
         if (is_string($offset) === false) {
-            throw new InvalidArgumentException('Service ID must be of type string!');
+            throw new InvalidArgumentException('The service ID must be of type string.');
         }
 
         return $this->get($offset);
@@ -181,7 +181,7 @@ class ServiceManager implements ServiceManagerInterface
     public function offsetSet(mixed $offset, mixed $value): void
     {
         if (is_string($offset) === false) {
-            throw new InvalidArgumentException('Service ID must be of type string!');
+            throw new InvalidArgumentException('The service ID must be of type string.');
         }
 
         $this->addService($offset, $value);
@@ -194,7 +194,7 @@ class ServiceManager implements ServiceManagerInterface
     {
         /** @phpstan-ignore-next-line */
         if (is_string($offset) === false) {
-            throw new InvalidArgumentException('Service ID must be of type string!');
+            throw new InvalidArgumentException('The service ID must be of type string.');
         }
 
         $this->removeService($offset);
@@ -228,7 +228,7 @@ class ServiceManager implements ServiceManagerInterface
                     $this->resolvedAbstractFactories[$abstractFactory] = $factory;
                 } else {
                     throw new InvalidAbstractFactoryException(
-                        sprintf('Abstract factory "%s" is invalid!', $abstractFactory),
+                        sprintf('The abstract factory "%s" is invalid.', $abstractFactory),
                     );
                 }
             }
@@ -257,7 +257,7 @@ class ServiceManager implements ServiceManagerInterface
             ?? $this->getAbstractFactory($id);
 
         if ($resolvableFactory === null) {
-            throw new ContainerException(sprintf('Factory for service "%s" not found!', $id));
+            throw new ContainerException(sprintf('The factory for service "%s" was not found.', $id));
         }
 
         if (is_callable($resolvableFactory)) {
@@ -274,7 +274,7 @@ class ServiceManager implements ServiceManagerInterface
             return $factory;
         }
 
-        throw new InvalidFactoryException(sprintf('Factory for service "%s" is invalid!', $id));
+        throw new InvalidFactoryException(sprintf('The factory for service "%s" is invalid.', $id));
     }
 
     private function getInvokableFactory(string $id): ?InvokableFactory

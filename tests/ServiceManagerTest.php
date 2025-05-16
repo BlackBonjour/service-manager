@@ -141,7 +141,7 @@ final class ServiceManagerTest extends TestCase
     public function testCreateServiceWithException(): void
     {
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage(sprintf('Service "%s" could not be created!', FooBar::class));
+        $this->expectExceptionMessage(sprintf('The service "%s" could not be created.', FooBar::class));
 
         $manager = new ServiceManager();
         $manager->createService(FooBar::class);
