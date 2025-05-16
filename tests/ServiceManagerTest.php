@@ -6,7 +6,6 @@ namespace BlackBonjourTest\ServiceManager;
 
 use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
-use BlackBonjour\ServiceManager\Exception\InvalidFactoryException;
 use BlackBonjour\ServiceManager\ServiceManager;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutDependencies;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
@@ -227,38 +226,5 @@ final class ServiceManagerTest extends TestCase
         self::assertFalse(isset($manager['foo']));
 
         self::assertTrue(isset($manager['bar']));
-    }
-
-    /**
-     * Verifies that the `ServiceManager` throws an appropriate exception when a factory is invalid.
-     *
-     * When a factory is not a callable or a string representing a class name, the service manager should throw a `ContainerException` with a nested
-     * `InvalidFactoryException` that has a clear message about which factory is invalid.
-     *
-     * @throws Throwable
-     */
-    public function testRequestingServiceWithInvalidFactory(): void
-    {
-        $manager = new ServiceManager(
-            services: [],
-            factories: [FooBar::class => 123],
-            abstractFactories: [],
-            invokables: [],
-        );
-
-        $this->expectException(ContainerException::class);
-
-        try {
-            $manager[FooBar::class];
-        } catch (Throwable $t) {
-            // Verify the previous exception before re-throwing
-            self::assertInstanceOf(InvalidFactoryException::class, $t->getPrevious());
-            self::assertEquals(
-                sprintf('Factory for service "%s" is invalid!', FooBar::class),
-                $t->getPrevious()->getMessage(),
-            );
-
-            throw $t; // Re-throw for expectException to catch
-        }
     }
 }

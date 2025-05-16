@@ -8,6 +8,7 @@ use BlackBonjour\ServiceManager\AbstractFactory\AbstractFactoryInterface;
 use BlackBonjour\ServiceManager\Exception\ClassNotFoundException;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\Exception\InvalidAbstractFactoryException;
+use BlackBonjour\ServiceManager\Exception\InvalidArgumentException;
 use BlackBonjour\ServiceManager\Exception\InvalidFactoryException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -16,13 +17,13 @@ use Throwable;
 class ServiceManager implements ServiceManagerInterface
 {
     /** @var array<AbstractFactoryInterface|class-string> */
-    private array $abstractFactories;
+    private array $abstractFactories = [];
 
     /** @var array<string, FactoryInterface|callable|class-string> */
-    private array $factories;
+    private array $factories = [];
 
     /** @var array<class-string, class-string> */
-    private array $invokables;
+    private array $invokables = [];
 
     /** @var array<string, AbstractFactoryInterface> */
     private array $resolvedAbstractFactories = [];
@@ -34,13 +35,17 @@ class ServiceManager implements ServiceManagerInterface
     private array $resolvedServices = [];
 
     /** @var array<string, mixed> */
-    private array $services;
+    private array $services = [];
 
     /**
      * @param array<string, mixed>                                  $services
      * @param array<string, FactoryInterface|callable|class-string> $factories
      * @param array<AbstractFactoryInterface|class-string>          $abstractFactories
      * @param array<string|int, class-string>                       $invokables
+     *
+     * @throws ClassNotFoundException
+     * @throws InvalidAbstractFactoryException
+     * @throws InvalidFactoryException
      */
     public function __construct(
         array $services = [],
@@ -48,51 +53,28 @@ class ServiceManager implements ServiceManagerInterface
         array $abstractFactories = [],
         array $invokables = [],
     ) {
-        // Validate services
-        foreach (array_keys($services) as $id) {
-            assert(is_string($id), sprintf('Service ID must be a string, "%s" given!', $id));
+        foreach ($services as $id => $service) {
+            $this->addService($id, $service);
         }
 
-        // Validate factories
         foreach ($factories as $id => $factory) {
-            assert(is_string($id), sprintf('Service ID must be a string, "%s" given!', $id));
-            assert(
-                $factory instanceof FactoryInterface
-                || is_callable($factory)
-                || (is_string($factory) && class_exists($factory)),
-                sprintf('Invalid factory provided for service "%s"!', $id),
-            );
+            $this->addFactory($id, $factory);
         }
 
-        // Validate abstract factories
         foreach ($abstractFactories as $abstractFactory) {
-            assert(
-                $abstractFactory instanceof AbstractFactoryInterface
-                || (is_string($abstractFactory) && class_exists($abstractFactory)),
-                sprintf('Abstract factories must implement %s!', AbstractFactoryInterface::class),
-            );
+            $this->addAbstractFactory($abstractFactory);
         }
 
-        // Validate invokable classes
         foreach ($invokables as $invokable) {
-            assert(
-                is_string($invokable) && class_exists($invokable),
-                sprintf('Invokable class "%s" does not exist!', $invokable),
-            );
+            $this->addInvokable($invokable);
         }
-
-        // Set properties
-        $this->abstractFactories = $abstractFactories;
-        $this->factories = $factories;
-        $this->invokables = array_combine($invokables, $invokables);
-        $this->services = $services;
     }
 
     public function addAbstractFactory(AbstractFactoryInterface|string $abstractFactory): void
     {
         if (is_string($abstractFactory) && class_exists($abstractFactory) === false) {
             throw new InvalidAbstractFactoryException(
-                sprintf('Abstract factory "%s does not exist!"', $abstractFactory),
+                sprintf('Abstract factory "%s" does not exist!', $abstractFactory),
             );
         }
 
@@ -166,35 +148,54 @@ class ServiceManager implements ServiceManagerInterface
 
     /**
      * @throws InvalidAbstractFactoryException
+     * @throws InvalidArgumentException
      */
     public function offsetExists(mixed $offset): bool
     {
-        assert(is_string($offset), 'Service ID must be of type string!');
+        /** @phpstan-ignore-next-line */
+        if (is_string($offset) === false) {
+            throw new InvalidArgumentException('Service ID must be of type string!');
+        }
 
         return $this->has($offset);
     }
 
     /**
      * @throws ContainerExceptionInterface
+     * @throws InvalidArgumentException
      * @throws NotFoundExceptionInterface
      */
     public function offsetGet(mixed $offset): mixed
     {
-        assert(is_string($offset), 'Service ID must be of type string!');
+        /** @phpstan-ignore-next-line */
+        if (is_string($offset) === false) {
+            throw new InvalidArgumentException('Service ID must be of type string!');
+        }
 
         return $this->get($offset);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        assert(is_string($offset), 'Service ID must be of type string!');
+        if (is_string($offset) === false) {
+            throw new InvalidArgumentException('Service ID must be of type string!');
+        }
 
         $this->addService($offset, $value);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function offsetUnset(mixed $offset): void
     {
-        assert(is_string($offset), 'Service ID must be of type string!');
+        /** @phpstan-ignore-next-line */
+        if (is_string($offset) === false) {
+            throw new InvalidArgumentException('Service ID must be of type string!');
+        }
 
         $this->removeService($offset);
     }
@@ -255,7 +256,7 @@ class ServiceManager implements ServiceManagerInterface
             ?? $this->getInvokableFactory($id)
             ?? $this->getAbstractFactory($id);
 
-        if (empty($resolvableFactory)) {
+        if ($resolvableFactory === null) {
             throw new ContainerException(sprintf('Factory for service "%s" not found!', $id));
         }
 
@@ -265,14 +266,12 @@ class ServiceManager implements ServiceManagerInterface
             return $resolvableFactory;
         }
 
-        if (is_string($resolvableFactory) && class_exists($resolvableFactory)) {
-            $factory = new $resolvableFactory();
+        $factory = new $resolvableFactory();
 
-            if ($factory instanceof FactoryInterface || is_callable($factory)) {
-                $this->resolvedFactories[$id] = $factory;
+        if ($factory instanceof FactoryInterface || is_callable($factory)) {
+            $this->resolvedFactories[$id] = $factory;
 
-                return $factory;
-            }
+            return $factory;
         }
 
         throw new InvalidFactoryException(sprintf('Factory for service "%s" is invalid!', $id));
