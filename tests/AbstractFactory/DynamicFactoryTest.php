@@ -16,7 +16,7 @@ use Throwable;
  *
  * This test suite verifies that the `DynamicFactory` can properly create services dynamically and handle various edge cases correctly.
  */
-class DynamicFactoryTest extends TestCase
+final class DynamicFactoryTest extends TestCase
 {
     /**
      * Verifies that the `DynamicFactory` can correctly identify which services it can create.

@@ -7,6 +7,9 @@ namespace BlackBonjourTest\ServiceManager\AbstractFactory;
 use BlackBonjour\ServiceManager\AbstractFactory\ReflectionFactory;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
 use BlackBonjour\ServiceManager\Exception\NotFoundException;
+use BlackBonjourTest\ServiceManager\Asset\ClassWithArrayParameter;
+use BlackBonjourTest\ServiceManager\Asset\ClassWithOptionalParameters;
+use BlackBonjourTest\ServiceManager\Asset\ClassWithoutConstructor;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutFactory;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutFactoryAndScalarTypeHint;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
@@ -19,7 +22,7 @@ use Throwable;
  *
  * This test suite verifies that the `ReflectionFactory` can properly create services using reflection and handle various edge cases correctly.
  */
-class ReflectionFactoryTest extends TestCase
+final class ReflectionFactoryTest extends TestCase
 {
     /**
      * Verifies that the `ReflectionFactory` can correctly identify which services it can create.
@@ -50,9 +53,10 @@ class ReflectionFactoryTest extends TestCase
         $container->expects($this->once())->method('get')->with(FooBar::class)->willReturn(new FooBar('', ''));
         $container->expects($this->once())->method('has')->with(FooBar::class)->willReturn(true);
 
-        $factory = new ReflectionFactory();
-
-        self::assertInstanceOf(ClassWithoutFactory::class, ($factory)($container, ClassWithoutFactory::class));
+        self::assertInstanceOf(
+            ClassWithoutFactory::class,
+            (new ReflectionFactory())($container, ClassWithoutFactory::class),
+        );
     }
 
     /**
@@ -74,11 +78,44 @@ class ReflectionFactoryTest extends TestCase
         );
 
         $container = $this->createMock(ContainerInterface::class);
-        $container->expects(self::once())->method('has')->with(FooBar::class)->willReturn(false);
+        $container
+            ->expects($this->once())
+            ->method('has')
+            ->with(FooBar::class)
+            ->willReturn(false);
 
-        $factory = new ReflectionFactory();
+        (new ReflectionFactory())($container, ClassWithoutFactory::class);
+    }
 
-        ($factory)($container, ClassWithoutFactory::class);
+    /**
+     * Verifies that the `ReflectionFactory` can create a service without a constructor.
+     *
+     * The factory should be able to instantiate classes that don't have a constructor.
+     *
+     * @throws Throwable
+     */
+    public function testInvokeWithoutConstructor(): void
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $instance = (new ReflectionFactory())($container, ClassWithoutConstructor::class);
+
+        self::assertInstanceOf(ClassWithoutConstructor::class, $instance);
+        self::assertEquals('ClassWithoutConstructor', $instance->getIdentifier());
+    }
+
+    /**
+     * Verifies that the `ReflectionFactory` can create a service with array type hint parameters.
+     *
+     * The factory should automatically provide an empty array for parameters with array type hints.
+     *
+     * @throws Throwable
+     */
+    public function testInvokeWithArrayParameter(): void
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $instance = (new ReflectionFactory())($container, ClassWithArrayParameter::class);
+
+        self::assertEquals(new ClassWithArrayParameter([]), $instance);
     }
 
     /**
@@ -90,7 +127,6 @@ class ReflectionFactoryTest extends TestCase
      */
     public function testInvokeWithNonOptionalScalarParams(): void
     {
-        $factory = new ReflectionFactory();
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessage(
             sprintf(
@@ -101,6 +137,28 @@ class ReflectionFactoryTest extends TestCase
 
         $container = $this->createMock(ContainerInterface::class);
 
-        ($factory)($container, ClassWithoutFactoryAndScalarTypeHint::class);
+        (new ReflectionFactory())($container, ClassWithoutFactoryAndScalarTypeHint::class);
+    }
+
+    /**
+     * Verifies that the `ReflectionFactory` can create a service with optional parameters.
+     *
+     * The factory should use default values for optional parameters when they are not provided.
+     *
+     * @throws Throwable
+     */
+    public function testInvokeWithOptionalParameters(): void
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container
+            ->expects($this->once())
+            ->method('has')
+            ->with(FooBar::class)
+            ->willReturn(false);
+
+        self::assertEquals(
+            new ClassWithOptionalParameters(),
+            (new ReflectionFactory())($container, ClassWithOptionalParameters::class),
+        );
     }
 }

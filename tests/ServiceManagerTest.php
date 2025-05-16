@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace BlackBonjourTest\ServiceManager;
 
 use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
+use BlackBonjour\ServiceManager\Exception\ClassNotFoundException;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
+use BlackBonjour\ServiceManager\Exception\InvalidAbstractFactoryException;
+use BlackBonjour\ServiceManager\Exception\InvalidArgumentException;
+use BlackBonjour\ServiceManager\Exception\InvalidFactoryException;
 use BlackBonjour\ServiceManager\ServiceManager;
+use BlackBonjourTest\ServiceManager\Asset\ClassWithoutConstructor;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutDependencies;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
 use BlackBonjourTest\ServiceManager\Asset\FooBarFactory;
@@ -36,6 +41,55 @@ final class ServiceManagerTest extends TestCase
         $manager->addAbstractFactory(DynamicFactory::class);
 
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
+    }
+
+    /**
+     * Verifies adding an abstract factory with an invalid class string throws an appropriate exception.
+     *
+     * When an abstract factory is added with an invalid class string, the service manager should throw
+     * an `InvalidAbstractFactoryException` with a clear error message about the invalid class string.
+     *
+     * @throws InvalidAbstractFactoryException
+     */
+    public function testAddAbstractFactoryWithInvalidClassString(): void
+    {
+        $this->expectException(InvalidAbstractFactoryException::class);
+        $this->expectExceptionMessage('The abstract factory "FooBar" does not exist.');
+
+        $manager = new ServiceManager();
+        /** @phpstan-ignore-next-line */
+        $manager->addAbstractFactory('FooBar');
+    }
+
+    /**
+     * Verifies adding an invalid abstract factory throws an appropriate exception.
+     *
+     * When an invalid abstract factory is added, the service manager should throw an `InvalidAbstractFactoryException`
+     * with a clear error message about the invalid abstract factory.
+     *
+     * @throws Throwable
+     */
+    public function testAddAbstractFactoryWithInvalidFactory(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('The service "123" could not be created.');
+
+        $manager = new ServiceManager();
+        $manager->addAbstractFactory(ClassWithoutConstructor::class);
+
+        try {
+            $manager->get('123');
+        } catch (Throwable $t) {
+            $previous = $t->getPrevious();
+
+            self::assertInstanceOf(InvalidAbstractFactoryException::class, $previous);
+            self::assertEquals(
+                sprintf('The abstract factory "%s" is invalid.', ClassWithoutConstructor::class),
+                $previous->getMessage(),
+            );
+
+            throw $t;
+        }
     }
 
     /**
@@ -84,6 +138,50 @@ final class ServiceManagerTest extends TestCase
     }
 
     /**
+     * Verifies adding a factory with an invalid class throws an appropriate exception.
+     *
+     * When a factory is added with an invalid class, the service manager should throw an `InvalidFactoryException` with a clear error message about the invalid class.
+     *
+     * @throws Throwable
+     */
+    public function testAddFactoryWithInvalidClass(): void
+    {
+        $this->expectException(InvalidFactoryException::class);
+        $this->expectExceptionMessage('The factory "FooBar" does not exist.');
+
+        $manager = new ServiceManager();
+        /** @phpstan-ignore-next-line */
+        $manager->addFactory(FooBar::class, 'FooBar');
+    }
+
+    /**
+     * Verifies adding an invalid factory throws an appropriate exception.
+     *
+     * When an invalid factory is added, the service manager should throw an `InvalidFactoryException` with a clear error message about the invalid factory.
+     *
+     * @throws Throwable
+     */
+    public function testAddFactoryWithInvalidFactory(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('The service "123" could not be created.');
+
+        $manager = new ServiceManager();
+        $manager->addFactory('123', ClassWithoutConstructor::class);
+
+        try {
+            $manager->get('123');
+        } catch (Throwable $t) {
+            $previous = $t->getPrevious();
+
+            self::assertInstanceOf(InvalidFactoryException::class, $previous);
+            self::assertEquals('The factory for service "123" is invalid.', $previous->getMessage());
+
+            throw $t;
+        }
+    }
+
+    /**
      * Verifies that the `ServiceManager` can add and use invokable services.
      *
      * The service manager should be able to register classes as invokable services and instantiate them when requested.
@@ -97,6 +195,23 @@ final class ServiceManagerTest extends TestCase
 
         self::assertInstanceOf(ClassWithoutDependencies::class, $manager->get(ClassWithoutDependencies::class));
         self::assertInstanceOf(stdClass::class, $manager->get(stdClass::class));
+    }
+
+    /**
+     * Verifies adding an invokable service with an invalid class throws an appropriate exception.
+     *
+     * When an invokable service is added with an invalid class, the service manager should throw a `ClassNotFoundException` with a clear error message about the invalid class.
+     *
+     * @throws Throwable
+     */
+    public function testAddInvokableWithInvalidClass(): void
+    {
+        $this->expectException(ClassNotFoundException::class);
+        $this->expectExceptionMessage('The class "FooBar" does not exist.');
+
+        $manager = new ServiceManager();
+        /** @phpstan-ignore-next-line */
+        $manager->addInvokable('FooBar');
     }
 
     /**
@@ -114,6 +229,12 @@ final class ServiceManagerTest extends TestCase
 
         self::assertEquals(['foo' => 'bar'], $manager['config']);
         self::assertEquals('bar', $manager['foo']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The service ID must be of type string.');
+
+        /** @phpstan-ignore-next-line */
+        $manager[123] = 123;
     }
 
     /**
@@ -167,6 +288,12 @@ final class ServiceManagerTest extends TestCase
         self::assertInstanceOf(FooBar::class, $manager->get(FooBar::class));
         self::assertInstanceOf(FooBar::class, $manager->offsetGet(FooBar::class));
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The service ID must be of type string.');
+
+        /** @phpstan-ignore-next-line */
+        $manager[123];
     }
 
     /**
@@ -187,6 +314,12 @@ final class ServiceManagerTest extends TestCase
         self::assertFalse($manager->has('config'));
         self::assertFalse($manager->offsetExists('config'));
         self::assertFalse(isset($manager['config']));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The service ID must be of type string.');
+
+        /** @phpstan-ignore-next-line */
+        isset($manager[123]);
     }
 
     /**
@@ -226,5 +359,11 @@ final class ServiceManagerTest extends TestCase
         self::assertFalse(isset($manager['foo']));
 
         self::assertTrue(isset($manager['bar']));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The service ID must be of type string.');
+
+        /** @phpstan-ignore-next-line */
+        unset($manager[123]);
     }
 }
