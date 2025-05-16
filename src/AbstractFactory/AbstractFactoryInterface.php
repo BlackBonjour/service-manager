@@ -7,14 +7,10 @@ namespace BlackBonjour\ServiceManager\AbstractFactory;
 use BlackBonjour\ServiceManager\FactoryInterface;
 use Psr\Container\ContainerInterface;
 
-/**
- * @author Erick Dyck <info@erickdyck.de>
- * @since  18.09.2019
- */
 interface AbstractFactoryInterface extends FactoryInterface
 {
     /**
-     * Checks if given service can be created by this abstract factory.
+     * Checks if the given service can be created by this abstract factory.
      */
     public function canCreate(ContainerInterface $container, string $service): bool;
 }

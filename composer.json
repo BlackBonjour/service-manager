@@ -30,16 +30,17 @@
     "friendsofphp/php-cs-fixer": "*",
     "phpmd/phpmd": "*",
     "phpstan/phpstan": "*",
-    "phpunit/phpunit": "^10.0"
+    "phpunit/phpunit": "^12.0",
+    "roave/security-advisories": "dev-latest"
   },
   "autoload": {
     "psr-4": {
-      "BlackBonjour\\ServiceManager\\": "src/"
+      "BlackBonjour\\ServiceManager\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "BlackBonjourTest\\ServiceManager\\": "test/"
+      "BlackBonjourTest\\ServiceManager\\": "tests"
     }
   }
 }

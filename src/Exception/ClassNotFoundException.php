@@ -6,4 +6,4 @@ namespace BlackBonjour\ServiceManager\Exception;
 
 use Psr\Container\NotFoundExceptionInterface;
 
-class NotFoundException extends ContainerException implements NotFoundExceptionInterface {}
+class ClassNotFoundException extends ContainerException implements NotFoundExceptionInterface {}

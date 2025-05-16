@@ -7,10 +7,6 @@ namespace BlackBonjourTest\ServiceManager\Asset;
 use BlackBonjour\ServiceManager\FactoryInterface;
 use Psr\Container\ContainerInterface;
 
-/**
- * @author Erick Dyck <info@erickdyck.de>
- * @since  18.09.2019
- */
 final class FooBarFactoryWithOptions implements FactoryInterface
 {
     /**
@@ -18,6 +14,7 @@ final class FooBarFactoryWithOptions implements FactoryInterface
      */
     public function __invoke(ContainerInterface $container, string $service, ?array $options = null): FooBar
     {
+        /** @phpstan-ignore-next-line */
         return new FooBar($options['foo'], $options['bar']);
     }
 }
