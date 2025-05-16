@@ -35,12 +35,12 @@
   },
   "autoload": {
     "psr-4": {
-      "BlackBonjour\\ServiceManager\\": "src/"
+      "BlackBonjour\\ServiceManager\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "BlackBonjourTest\\ServiceManager\\": "test/"
+      "BlackBonjourTest\\ServiceManager\\": "tests"
     }
   }
 }
