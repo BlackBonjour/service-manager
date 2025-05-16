@@ -6,6 +6,7 @@ namespace BlackBonjourTest\ServiceManager;
 
 use BlackBonjour\ServiceManager\AbstractFactory\DynamicFactory;
 use BlackBonjour\ServiceManager\Exception\ContainerException;
+use BlackBonjour\ServiceManager\Exception\InvalidFactoryException;
 use BlackBonjour\ServiceManager\ServiceManager;
 use BlackBonjourTest\ServiceManager\Asset\ClassWithoutDependencies;
 use BlackBonjourTest\ServiceManager\Asset\FooBar;
@@ -156,7 +157,7 @@ class ServiceManagerTest extends TestCase
             $manager[FooBar::class];
         } catch (Throwable $t) {
             self::assertInstanceOf(ContainerException::class, $t);
-            self::assertInstanceOf(ContainerException::class, $t->getPrevious());
+            self::assertInstanceOf(InvalidFactoryException::class, $t->getPrevious());
             self::assertEquals(
                 sprintf('Factory for service "%s" is invalid!', FooBar::class),
                 $t->getPrevious()->getMessage(),
