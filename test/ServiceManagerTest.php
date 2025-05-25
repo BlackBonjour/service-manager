@@ -38,6 +38,23 @@ class ServiceManagerTest extends TestCase
         self::assertInstanceOf(FooBar::class, $manager[FooBar::class]);
     }
 
+    public function testAddAlias(): void
+    {
+        // Via ::add methods
+        $manager = new ServiceManager();
+        $manager->addAlias('configuration', 'config');
+        $manager->addService('config', ['foo' => 'bar']);
+
+        self::assertEquals(['foo' => 'bar'], $manager->get('configuration'));
+        self::assertEquals(['foo' => 'bar'], $manager['configuration']);
+
+        // Via constructor
+        $manager = new ServiceManager(['config' => ['foo' => 'bar']], aliases: ['configuration' => 'config']);
+
+        self::assertEquals(['foo' => 'bar'], $manager->get('configuration'));
+        self::assertEquals(['foo' => 'bar'], $manager['configuration']);
+    }
+
     public function testAddFactory(): void
     {
         $manager = new ServiceManager();
@@ -65,8 +82,8 @@ class ServiceManagerTest extends TestCase
 
     public function testAddService(): void
     {
-        $config         = ['foo' => 'bar'];
-        $manager        = new ServiceManager();
+        $config = ['foo' => 'bar'];
+        $manager = new ServiceManager();
         $manager['foo'] = 'bar';
         $manager->addService('config', $config);
 
@@ -80,6 +97,40 @@ class ServiceManagerTest extends TestCase
         $manager->addFactory(FooBar::class, FooBarFactoryWithOptions::class);
 
         self::assertInstanceOf(FooBar::class, $manager->createService(FooBar::class, ['foo' => 'foo', 'bar' => 'bar']));
+    }
+
+    public function testCreateServiceWithAlias(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addAlias('foobar-alias', FooBar::class);
+        $manager->addFactory(FooBar::class, FooBarFactoryWithOptions::class);
+
+        self::assertInstanceOf(
+            FooBar::class,
+            $manager->createService('foobar-alias', ['foo' => 'foo', 'bar' => 'bar']),
+        );
+    }
+
+    public function testCreateServiceWithAliasAndOptions(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addAlias('alias-service', 'original-service');
+        $manager->addFactory(
+            'original-service',
+            static fn($container, $id, $options) => $options['value'] ?? 'default',
+        );
+
+        self::assertEquals('custom', $manager->createService('alias-service', ['value' => 'custom']));
+    }
+
+    public function testCreateServiceWithAliasException(): void
+    {
+        $this->expectException(ContainerException::class);
+        $this->expectExceptionMessage('Service "foobar-alias" could not be created!');
+
+        $manager = new ServiceManager();
+        $manager->addAlias('foobar-alias', FooBar::class);
+        $manager->createService('foobar-alias');
     }
 
     public function testCreateServiceWithException(): void
@@ -127,6 +178,17 @@ class ServiceManagerTest extends TestCase
         self::assertFalse(isset($manager['config']));
     }
 
+    public function testHasWithAlias(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addAlias('alias-service', 'original-service');
+        $manager->addService('original-service', 'value');
+
+        self::assertTrue($manager->has('alias-service'));
+        self::assertTrue($manager->offsetExists('alias-service'));
+        self::assertTrue(isset($manager['alias-service']));
+    }
+
     public function testRemoveService(): void
     {
         $manager = new ServiceManager();
@@ -143,13 +205,27 @@ class ServiceManagerTest extends TestCase
         self::assertTrue(isset($manager['bar']));
     }
 
+    public function testRemoveServiceWithAlias(): void
+    {
+        $manager = new ServiceManager();
+        $manager->addAlias('alias-service', 'original-service');
+        $manager->addService('original-service', 'value');
+
+        self::assertTrue($manager->has('alias-service'));
+
+        $manager->removeService('alias-service');
+
+        self::assertFalse($manager->has('alias-service'));
+        self::assertTrue($manager->has('original-service'));
+    }
+
     public function testRequestingServiceWithInvalidFactory(): void
     {
         $manager = new ServiceManager(
-            services         : [],
-            factories        : [FooBar::class => 123],
+            services: [],
+            factories: [FooBar::class => 123],
             abstractFactories: [],
-            invokables       : [],
+            invokables: [],
         );
 
         try {

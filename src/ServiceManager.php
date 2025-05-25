@@ -27,6 +27,9 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     /** @var array<AbstractFactoryInterface|class-string> */
     private array $abstractFactories;
 
+    /** @var array<string, string> Alias => ID */
+    private array $aliases = [];
+
     /** @var array<string, FactoryInterface|callable|class-string> */
     private array $factories;
 
@@ -50,12 +53,14 @@ class ServiceManager implements ArrayAccess, ContainerInterface
      * @param array<string, FactoryInterface|callable|class-string> $factories
      * @param array<AbstractFactoryInterface|class-string>          $abstractFactories
      * @param array<string|int, class-string>                       $invokables
+     * @param array<string, string>                                 $aliases
      */
     public function __construct(
         array $services = [],
         array $factories = [],
         array $abstractFactories = [],
         array $invokables = [],
+        array $aliases = [],
     ) {
         // Validate services
         foreach (array_keys($services) as $id) {
@@ -90,11 +95,17 @@ class ServiceManager implements ArrayAccess, ContainerInterface
             );
         }
 
+        // Validate aliases
+        foreach (array_keys($aliases) as $alias) {
+            assert(is_string($alias), sprintf('Alias must be a string, "%s" given!', $alias));
+        }
+
         // Set properties
         $this->abstractFactories = $abstractFactories;
-        $this->factories         = $factories;
-        $this->invokables        = array_combine($invokables, $invokables);
-        $this->services          = $services;
+        $this->aliases = $aliases;
+        $this->factories = $factories;
+        $this->invokables = array_combine($invokables, $invokables);
+        $this->services = $services;
     }
 
     /**
@@ -107,6 +118,11 @@ class ServiceManager implements ArrayAccess, ContainerInterface
         }
 
         $this->abstractFactories[] = $abstractFactory;
+    }
+
+    public function addAlias(string $alias, string $id): void
+    {
+        $this->aliases[$alias] = $id;
     }
 
     /**
@@ -145,15 +161,29 @@ class ServiceManager implements ArrayAccess, ContainerInterface
      */
     public function createService(string $id, ?array $options = null): mixed
     {
+        if (array_key_exists($id, $this->aliases)) {
+            $requestedId = $id;
+            $id = $this->aliases[$id];
+        } else {
+            $requestedId = null;
+        }
+
         try {
             return $this->getFactory($id)($this, $id, $options);
         } catch (Throwable $t) {
-            throw new ContainerException(sprintf('Service "%s" could not be created!', $id), previous: $t);
+            throw new ContainerException(
+                sprintf('Service "%s" could not be created!', $requestedId ?? $id),
+                previous: $t,
+            );
         }
     }
 
     public function get(string $id): mixed
     {
+        if (array_key_exists($id, $this->aliases)) {
+            $id = $this->aliases[$id];
+        }
+
         if (array_key_exists($id, $this->services)) {
             return $this->services[$id];
         }
@@ -162,7 +192,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
             return $this->resolvedServices[$id];
         }
 
-        $service                     = $this->createService($id);
+        $service = $this->createService($id);
         $this->resolvedServices[$id] = $service;
 
         return $service;
@@ -170,6 +200,10 @@ class ServiceManager implements ArrayAccess, ContainerInterface
 
     public function has(string $id): bool
     {
+        if (array_key_exists($id, $this->aliases)) {
+            $id = $this->aliases[$id];
+        }
+
         if (
             array_key_exists($id, $this->services)
             || array_key_exists($id, $this->resolvedServices)
@@ -217,6 +251,7 @@ class ServiceManager implements ArrayAccess, ContainerInterface
     public function removeService(string $id): void
     {
         unset(
+            $this->aliases[$id],
             $this->factories[$id],
             $this->invokables[$id],
             $this->resolvedFactories[$id],
